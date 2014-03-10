@@ -82,27 +82,40 @@ namespace Crawler
         private void handleUrl(string url) {
             string page = requestPage(url);
             if (url.EndsWith(".xml")) {
-                parseSitemap(page);
+                parseSitemap(page, url);
             }
-            else if (url.EndsWith(".html"))
+            else
             {
-                parseWebpage(page);
+                parseWebpage(page, url);
             }
         }
 
-        private void parseSitemap(string sitemap)
-        {
+        private void parseSitemap(string sitemap, string currentDomain)
+        {   
+            // check the sitemap for <loc></loc> urls, add them
             foreach (Match url in Regex.Matches(sitemap, "<loc>http://([a-z]*?)\\.cnn\\.com(.*?)</loc>"))
             {
                 addUrl(url.Groups[1].Value, url.Groups[2].Value);
             }
         }
 
-        private void parseWebpage(string page)
+        private void parseWebpage(string page, string currentDomain)
         {
-            foreach (Match url in Regex.Matches(page, ""))
-            {
 
+            Match siteMatch = Regex.Match(page, "<title>(.*?)(?:[-<].*)itle>");
+            string site = siteMatch.Groups[1].Value;
+
+            Debug.WriteLine(site);
+
+            // now that we've parsed the page of information we want, check it for links to follow
+            foreach (Match url in Regex.Matches(page, "href\"(?:http://([a-z]*?)\\.cnn\\.com)?([^\"]*?\\.html.*?)[\"#]"))
+            {
+                string domain = url.Groups[1].Value;
+                if (domain.Length == 0)
+                {
+                    domain = currentDomain;
+                }
+                addUrl(domain, url.Groups[2].Value);
             }
         }
 
@@ -119,16 +132,23 @@ namespace Crawler
         }
 
         private void addUrl(string domain, string path)
-        {
+        {   
+            // if the domain hasn't been visited
+            // parse it's robots.txt and add sitemaps to the queue
             if (!domainValidators.ContainsKey(domain))
             {
                 domainValidators.Add(domain, new DomainValidator(domain));
-                // add sitemaps
+                foreach (string sitemap in domainValidators[domain].getSitemaps())
+                {
+                    urlQueue.AddMessage(new CloudQueueMessage(sitemap));
+                }
             }
 
+            // now that it definitely exists, make sure the current path is allowed
+            // if it is, enqueue the url
             if (domainValidators[domain].isValid(path))
             {
-                // enqueue url
+                urlQueue.AddMessage(new CloudQueueMessage("http://" + domain + ".cnn.com" + path));
             }
         }
     }

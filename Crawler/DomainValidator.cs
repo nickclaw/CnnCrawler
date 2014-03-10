@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 
 namespace Crawler
 {
-    class DomainValidator
+    public class DomainValidator
     {   
         private string domain;
         private List<string> forbidden;
         private List<string> sitemaps;
 
-        public DomainValidator(string domain) {
+        public DomainValidator(string dmn) {
+            domain = dmn;
             forbidden = new List<string>();
             sitemaps = new List<string>();
 
@@ -41,8 +42,16 @@ namespace Crawler
             return forbidden;
         }
 
-        public bool isValid(string url)
+        public bool isValid(string path)
         {
+            foreach (string forbiddenPath in forbidden)
+            {
+                if (forbiddenPath.StartsWith(path))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
