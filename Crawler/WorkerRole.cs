@@ -127,16 +127,19 @@ namespace Crawler
                 table.Execute(
                     TableOperation.InsertOrReplace(new Website(keyword, currentUrl))
                 );
+            }
 
-                count++;
-                lastTen.Enqueue(currentUrl);
+            lastTen.Enqueue(currentUrl);
+            if (lastTen.Count > 10)
+            {
                 lastTen.Dequeue();
             }
+            count++;
             dataTable.Execute(
-                TableOperation.InsertOrReplace(new Website("count", count.ToString()))
+                TableOperation.InsertOrReplace(new Data("count", count.ToString()))
             );
             dataTable.Execute(
-                TableOperation.InsertOrReplace(new Website("lastten", WebUtility.UrlEncode(String.Join("|", lastTen.ToArray()))))
+                TableOperation.InsertOrReplace(new Data("lastten", String.Join("|", lastTen.ToArray())))
             );
 
             Debug.WriteLine("Title: " + site);

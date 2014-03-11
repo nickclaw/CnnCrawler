@@ -87,24 +87,60 @@ namespace AccessPoint
         [WebMethod]
         public int QueueSize()
         {
-            return (int)urlQueue.ApproximateMessageCount;
+            int? count = urlQueue.ApproximateMessageCount;
+            if (count == null)
+            {
+                return 0;
+            }
+            return (int)count;
         }
         
         [WebMethod]
         public int CrawledSize()
         {
-            TableQuery<Website> query = new TableQuery<Website>().Where(
-                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "count")
-            );
-
-            List<Website> results = dataTable.ExecuteQuery(query).ToList<Website>();
-            if (results.Count > 0)
+            string result = getData("count");
+            if (result != null)
             {
-                return int.Parse(results[0].RowKey);
+                return int.Parse(result);
             }
             else
             {
                 return 0;
+            }
+        }
+
+        [WebMethod]
+        public List<string> LastTen()
+        {
+            string result = getData("lastten");
+
+            if (result != null)
+            {
+                return result.Split('|').ToList<string>();
+            }
+            else
+            {
+                return new List<string>();
+            }
+        }
+
+        private string getData(string type) {
+            TableQuery<Data> query = new TableQuery<Data>().Where(
+                TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "data"),
+                    TableOperators.And,
+                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, type)
+                )
+            );
+
+            List<Data> results = dataTable.ExecuteQuery(query).ToList<Data>();
+            if (results.Count > 0)
+            {
+                return WebUtility.UrlDecode(results[0].data);
+            }
+            else
+            {
+                return null;
             }
         }
     }

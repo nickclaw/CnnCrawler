@@ -11,9 +11,6 @@ namespace Crawler
 {
     public class Website : TableEntity
     {
-        public string url;
-        public string title;
-
         public Website()
         {
 
@@ -23,15 +20,6 @@ namespace Crawler
         {
             this.RowKey = WebUtility.UrlEncode(url);
             this.PartitionKey = keyword;
-        }
-
-        public string getTitle()
-        {
-            return WebUtility.UrlDecode(title);
-        }
-
-        public string getUrl() {
-            return WebUtility.UrlDecode(url);
         }
     }
 }
