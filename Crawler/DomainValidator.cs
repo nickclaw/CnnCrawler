@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace Crawler
 {
@@ -23,6 +24,7 @@ namespace Crawler
             string robots = requestPage("http://" + domain + ".cnn.com/robots.txt");
             foreach (Match url in Regex.Matches(robots, "Sitemap: (.*)"))
             {
+                Debug.WriteLine("Domain - " + domain + ": " + url.Groups[1].Value);
                 sitemaps.Add(url.Groups[1].Value);
             }
 
@@ -44,6 +46,11 @@ namespace Crawler
 
         public bool isValid(string path)
         {
+            if (!path.Contains(".html") && !path.Contains(".xml"))
+            {
+                return false;
+            }
+
             foreach (string forbiddenPath in forbidden)
             {
                 if (forbiddenPath.StartsWith(path))
@@ -57,6 +64,7 @@ namespace Crawler
 
         private string requestPage(string url)
         {
+            Debug.WriteLine("Requesting page: " + url);
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             WebResponse response = request.GetResponse();

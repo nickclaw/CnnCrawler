@@ -8,7 +8,6 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
-using System.Diagnostics;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.IO;
@@ -26,12 +25,15 @@ namespace Crawler
 
         public override void Run()
         {
+            Debug.WriteLine("Run()");
+
             // This is a sample worker implementation. Replace with your logic.
             Trace.TraceInformation("Crawler entry point called", "Information");
 
             while (true)
             {
-                Thread.Sleep(10000);
+                Debug.WriteLine("``---------------------RUNNING------------------");
+                Thread.Sleep(50);
 
                 CloudQueueMessage command = commandQueue.GetMessage();
                 if (command != null)
@@ -53,6 +55,8 @@ namespace Crawler
 
         public override bool OnStart()
         {
+            Debug.WriteLine("OnStart()");
+
             // Set the maximum number of concurrent connections 
             ServicePointManager.DefaultConnectionLimit = 12;
 
@@ -64,38 +68,43 @@ namespace Crawler
             commandQueue.CreateIfNotExists();
             urlQueue.CreateIfNotExists();
 
+            urlQueue.Clear(); // TODO temporary
+
             CloudTableClient tableClient = storage.CreateCloudTableClient();
             table = tableClient.GetTableReference("urltable");
             table.CreateIfNotExists();
 
-            urlQueue.AddMessage(new CloudQueueMessage("http://www.cnn.com/index.html"));
-
-            DomainValidator wwwValidator = new DomainValidator("www");
-            foreach (string url in wwwValidator.getSitemaps())
-            {
-
-            }
+            addUrl("www", "/index.html");
 
             return base.OnStart();
         }
 
         private void handleUrl(string url) {
+            Debug.WriteLine("Handling: " + url);
             string page = requestPage(url);
             if (url.EndsWith(".xml")) {
                 parseSitemap(page, url);
             }
             else
             {
-                parseWebpage(page, url);
+                string domain = Regex.Match(url, "http://(.*?)\\.").Groups[1].Value;
+                parseWebpage(page, domain);
             }
         }
 
         private void parseSitemap(string sitemap, string currentDomain)
-        {   
+        {
+            Debug.WriteLine("Sitemap: " + currentDomain);
             // check the sitemap for <loc></loc> urls, add them
             foreach (Match url in Regex.Matches(sitemap, "<loc>http://([a-z]*?)\\.cnn\\.com(.*?)</loc>"))
             {
-                addUrl(url.Groups[1].Value, url.Groups[2].Value);
+                Debug.WriteLine("Parsing Sitemap: " + url.Groups[2].Value);
+
+                Match match = Regex.Match(url.Groups[2].Value, "(\\d{4})-\\d{2}\\.xml");
+                if (!match.Success || match.Groups[1].Value == "2014")
+                {
+                    addUrl(url.Groups[1].Value, url.Groups[2].Value);
+                }
             }
         }
 
@@ -105,11 +114,12 @@ namespace Crawler
             Match siteMatch = Regex.Match(page, "<title>(.*?)(?:[-<].*)itle>");
             string site = siteMatch.Groups[1].Value;
 
-            Debug.WriteLine(site);
+            Debug.WriteLine("Title: " + site);
 
             // now that we've parsed the page of information we want, check it for links to follow
-            foreach (Match url in Regex.Matches(page, "href\"(?:http://([a-z]*?)\\.cnn\\.com)?([^\"]*?\\.html.*?)[\"#]"))
+            foreach (Match url in Regex.Matches(page, "href=\"(?:http://([a-z]*?)\\.cnn\\.com)?([^\"]*?\\.html.*?)[\"#]"))
             {
+                Debug.WriteLine("Parsing Webpage: " + url.Groups[2].Value);
                 string domain = url.Groups[1].Value;
                 if (domain.Length == 0)
                 {
@@ -121,6 +131,7 @@ namespace Crawler
 
         private string requestPage(string url)
         {
+            Debug.WriteLine("Requesting page: " + url);
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             WebResponse response = request.GetResponse();
@@ -137,9 +148,11 @@ namespace Crawler
             // parse it's robots.txt and add sitemaps to the queue
             if (!domainValidators.ContainsKey(domain))
             {
+                Debug.WriteLine("Adding DomainValidator: " + domain);
                 domainValidators.Add(domain, new DomainValidator(domain));
                 foreach (string sitemap in domainValidators[domain].getSitemaps())
                 {
+                    Debug.WriteLine("Queueing Sitemap: " + sitemap);
                     urlQueue.AddMessage(new CloudQueueMessage(sitemap));
                 }
             }
