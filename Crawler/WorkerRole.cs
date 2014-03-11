@@ -83,18 +83,17 @@ namespace Crawler
             Debug.WriteLine("Handling: " + url);
             string page = requestPage(url);
             if (url.EndsWith(".xml")) {
-                parseSitemap(page, url);
+                parseSitemap(page);
             }
             else
             {
                 string domain = Regex.Match(url, "http://(.*?)\\.").Groups[1].Value;
-                parseWebpage(page, domain);
+                parseWebpage(page, domain, url);
             }
         }
 
-        private void parseSitemap(string sitemap, string currentDomain)
+        private void parseSitemap(string sitemap)
         {
-            Debug.WriteLine("Sitemap: " + currentDomain);
             // check the sitemap for <loc></loc> urls, add them
             foreach (Match url in Regex.Matches(sitemap, "<loc>http://([a-z]*?)\\.cnn\\.com(.*?)</loc>"))
             {
@@ -108,11 +107,17 @@ namespace Crawler
             }
         }
 
-        private void parseWebpage(string page, string currentDomain)
+        private void parseWebpage(string page, string currentDomain, string currentUrl)
         {
 
             Match siteMatch = Regex.Match(page, "<title>(.*?)(?:[-<].*)itle>");
+            Match dateMatch = Regex.Match(page, "<meta(?=.*dateModified)(?=.*(\\d{4}-\\d{2}-\\d{2})).*>");
             string site = siteMatch.Groups[1].Value;
+            string date = dateMatch.Groups[1].Value;
+
+            table.Execute(
+                TableOperation.InsertOrReplace(new Website(site, currentUrl, date))
+            );
 
             Debug.WriteLine("Title: " + site);
 
