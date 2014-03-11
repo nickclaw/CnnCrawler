@@ -20,6 +20,10 @@ namespace Crawler
         public CloudQueue commandQueue;
         public CloudQueue urlQueue;
         public CloudTable table;
+        public CloudTable dataTable;
+
+        public int count;
+        public Queue<string> lastTen;
 
         public Dictionary<string, DomainValidator> domainValidators = new Dictionary<string, DomainValidator>();
 
@@ -73,6 +77,11 @@ namespace Crawler
             CloudTableClient tableClient = storage.CreateCloudTableClient();
             table = tableClient.GetTableReference("urltable");
             table.CreateIfNotExists();
+            dataTable = tableClient.GetTableReference("datatable");
+            dataTable.CreateIfNotExists();
+
+            lastTen = new Queue<string>();
+            count = 0; // TODO get info from datatable
 
             addUrl("www", "/index.html");
 
@@ -118,7 +127,17 @@ namespace Crawler
                 table.Execute(
                     TableOperation.InsertOrReplace(new Website(keyword, currentUrl))
                 );
+
+                count++;
+                lastTen.Enqueue(currentUrl);
+                lastTen.Dequeue();
             }
+            dataTable.Execute(
+                TableOperation.InsertOrReplace(new Website("count", count.ToString()))
+            );
+            dataTable.Execute(
+                TableOperation.InsertOrReplace(new Website("lastten", WebUtility.UrlEncode(String.Join("|", lastTen.ToArray()))))
+            );
 
             Debug.WriteLine("Title: " + site);
 

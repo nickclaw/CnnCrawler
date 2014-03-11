@@ -15,9 +15,6 @@ using System.Text.RegularExpressions;
 
 namespace AccessPoint
 {
-    /// <summary>
-    /// Summary description for Service
-    /// </summary>
     [WebService(Namespace = "http://tempuri.org/")]
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
     [System.ComponentModel.ToolboxItem(false)]
@@ -26,7 +23,9 @@ namespace AccessPoint
     public class Service : System.Web.Services.WebService
     {
         private CloudTable table;
+        private CloudTable dataTable;
         private CloudQueue commandQueue;
+        private CloudQueue urlQueue;
 
         public Service()
         {
@@ -35,10 +34,14 @@ namespace AccessPoint
             CloudQueueClient queueClient = storage.CreateCloudQueueClient();
             commandQueue = queueClient.GetQueueReference("commandqueue");
             commandQueue.CreateIfNotExists();
+            urlQueue = queueClient.GetQueueReference("urlqueue");
+            urlQueue.CreateIfNotExists();
 
             CloudTableClient tableClient = storage.CreateCloudTableClient();
             table = tableClient.GetTableReference("urltable");
             table.CreateIfNotExists();
+            dataTable = tableClient.GetTableReference("datatable");
+            dataTable.CreateIfNotExists();
         }
 
         private string combineFilter(List<string> words) {
@@ -72,6 +75,37 @@ namespace AccessPoint
                 list.Add(WebUtility.UrlDecode(site.RowKey));
             }
             return list;
+        }
+
+        [WebMethod]
+        public bool Command(string command)
+        {
+            commandQueue.AddMessage(new CloudQueueMessage(command));
+            return true;
+        }
+
+        [WebMethod]
+        public int QueueSize()
+        {
+            return (int)urlQueue.ApproximateMessageCount;
+        }
+        
+        [WebMethod]
+        public int CrawledSize()
+        {
+            TableQuery<Website> query = new TableQuery<Website>().Where(
+                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "count")
+            );
+
+            List<Website> results = dataTable.ExecuteQuery(query).ToList<Website>();
+            if (results.Count > 0)
+            {
+                return int.Parse(results[0].RowKey);
+            }
+            else
+            {
+                return 0;
+            }
         }
     }
 }
