@@ -68,7 +68,7 @@ namespace Crawler
             commandQueue.CreateIfNotExists();
             urlQueue.CreateIfNotExists();
 
-            urlQueue.Clear(); // TODO temporary
+            // urlQueue.Clear(); // TODO temporary
 
             CloudTableClient tableClient = storage.CreateCloudTableClient();
             table = tableClient.GetTableReference("urltable");
@@ -111,13 +111,14 @@ namespace Crawler
         {
 
             Match siteMatch = Regex.Match(page, "<title>(.*?)(?:[-<].*)itle>");
-            Match dateMatch = Regex.Match(page, "<meta(?=.*dateModified)(?=.*(\\d{4}-\\d{2}-\\d{2})).*>");
             string site = siteMatch.Groups[1].Value;
-            string date = dateMatch.Groups[1].Value;
 
-            table.Execute(
-                TableOperation.InsertOrReplace(new Website(site, currentUrl, date))
-            );
+            foreach (string keyword in Regex.Split(Regex.Replace(site.Trim(), "[^a-zA-Z0-9\\s\\.]+", " ").ToLower(), "\\s"))
+            {
+                table.Execute(
+                    TableOperation.InsertOrReplace(new Website(keyword, currentUrl))
+                );
+            }
 
             Debug.WriteLine("Title: " + site);
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Crawler
@@ -11,23 +12,26 @@ namespace Crawler
     public class Website : TableEntity
     {
         public string url;
-        public string modified;
+        public string title;
 
-        public Website(string title, string url, string modified)
+        public Website()
         {
-            this.PartitionKey = "website";
-            this.RowKey = title.ToLower().Trim();
-            this.url = WebUtility.UrlEncode(url);
-            this.modified = WebUtility.UrlEncode(modified);
 
+        }
+
+        public Website(string keyword, string url)
+        {
+            this.RowKey = WebUtility.UrlEncode(url);
+            this.PartitionKey = keyword;
+        }
+
+        public string getTitle()
+        {
+            return WebUtility.UrlDecode(title);
         }
 
         public string getUrl() {
             return WebUtility.UrlDecode(url);
-        }
-
-        public string getModified() {
-            return WebUtility.UrlDecode(modified);
         }
     }
 }

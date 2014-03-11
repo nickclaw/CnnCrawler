@@ -37,6 +37,14 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AccessPoint\AccessPoint.csproj">
+      <Name>AccessPoint</Name>
+      <Project>{2720b4d5-7d76-4458-9fde-25e968f22ec7}</Project>
+      <Private>True</Private>
+      <RoleType>Web</RoleType>
+      <RoleName>AccessPoint</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
     <ProjectReference Include="..\Crawler\Crawler.csproj">
       <Name>Crawler</Name>
       <Project>{c1339e65-fcb5-4bc2-8fed-586903161a0e}</Project>
@@ -48,9 +56,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CrawlerContent\" />
+    <Folder Include="AccessPointContent" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="CrawlerContent\diagnostics.wadcfg">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="AccessPointContent\diagnostics.wadcfg">
       <SubType>Content</SubType>
     </Content>
   </ItemGroup>
