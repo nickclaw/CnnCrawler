@@ -1,0 +1,55 @@
+.section {
+    width: 100%;
+    margin-top: 20px;
+}
+    #stats .statContainer {
+        display: inline-block;
+        vertical-align: top;
+        width: 165px;
+        height: 165px;
+        margin: 5px;
+    }
+
+    .statContainer h3 {
+        text-align: center;
+    }
+
+    .statContainer .value {
+        font-family: monospace;
+        font-size: 40pt;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 165px;
+        position: absolute;
+        top: 0px;
+        width: 100%;
+    }
+
+.statContainer, #lastten, #lasterrors {
+    font-size: 14pt;
+    background-color: white;
+    box-shadow: 0 0 5px rgba(89,89,89, .25);
+    padding: 5px;
+}
+
+#lastten ul, #lasterrors ul {
+    list-style: none;
+}
+
+#commands button {
+    display: block;
+    font-size: 15pt;
+    text-align: center;
+    width: 100%;
+    padding: 5px;
+    margin-top: 15px;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    background-color: rgb(220,220,220);
+}
+
+#commands button:hover {
+    background-color: rgb(200,200,200);
+}

@@ -1,35 +1,11 @@
-* {
-    margin: 0px;
-    padding: 0px;
-    box-sizing: border-box;
-    position: relative;
-}
-
-body {
-    background-color: #fbfbf3;
-}
-
-.contained {
-    width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 #header {
     height: 84px;
     background-image: linear-gradient(to top,#920000,#d60000);
     padding: 10px;
 }
-    #header h1, #header #search {
-        font-family: Arial, sans-serif;
+    #header #search {
         display: inline-block;
         vertical-align: baseline;
-    }
-
-    #header h1 {
-        color: white;
-        font-size: 54px;
-        margin-right: 20px;
     }
 
     #search, #autocomplete {
@@ -60,32 +36,28 @@ body {
             background-color: rgb(220,220,220);
         }
 
-#container {
-    font-size: 0px;
+#container #resultsContainer, #container #playerContainer {
+    display: inline-block;
+    vertical-align: top;
 }
-    #container #resultsContainer, #container #playerContainer {
-        display: inline-block;
-        vertical-align: top;
+
+#container #resultsContainer {
+    font-size: 12pt;
+    width: 70%;
+}
+
+    #results .result, #no-results {
+        margin: 5px;
+        background-color: white;
+        box-shadow: 0 0 5px rgba(89,89,89,.25);
+        padding: 5px;
     }
 
-    #container #resultsContainer {
-        font-size: 12pt;
-        font-family: Arial, sans-serif;
-        width: 70%;
+    #results .result h2, #no-results h2 {
+
     }
 
-        #results .result, #no-results {
-            margin: 5px;
-            background-color: white;
-            box-shadow: 0 0 5px rgba(89,89,88,.25);
-            padding: 5px;
-        }
 
-        #results .result h2, #no-results h2 {
-
-        }
-
-
-    #container #playerContainer {
-        width: 30%;
-    }
+#container #playerContainer {
+    width: 30%;
+}

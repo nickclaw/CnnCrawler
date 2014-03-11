@@ -1,0 +1,35 @@
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    position: relative;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #fbfbf3;
+}
+
+.contained {
+    width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#header {
+    height: 84px;
+    background-image: linear-gradient(to top,#920000,#d60000);
+    padding: 10px;
+}
+    #header h1 {
+        font-family: Arial, sans-serif;
+        display: inline-block;
+        vertical-align: baseline;
+        color: white;
+        font-size: 54px;
+        margin-right: 20px;
+    }
+
+#container {
+    font-size: 0px;
+}
