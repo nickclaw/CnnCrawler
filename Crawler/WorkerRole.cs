@@ -23,6 +23,7 @@ namespace Crawler
         public CloudTable dataTable;
 
         public int count;
+        public int queueSize;
         public Queue<string> lastTen;
 
         public Dictionary<string, DomainValidator> domainValidators = new Dictionary<string, DomainValidator>();
@@ -31,21 +32,31 @@ namespace Crawler
         {
             Debug.WriteLine("Run()");
 
+            bool canRun = false;
+
             // This is a sample worker implementation. Replace with your logic.
             Trace.TraceInformation("Crawler entry point called", "Information");
 
             while (true)
             {
                 Debug.WriteLine("``---------------------RUNNING------------------");
-                Thread.Sleep(50);
+                Thread.Sleep(500);
 
                 CloudQueueMessage command = commandQueue.GetMessage();
                 if (command != null)
                 {
                     commandQueue.DeleteMessage(command);
-                    // handle command
+                    Debug.WriteLine("############## COMMAND: " + command.AsString + " ############");
+                    if (command.AsString == "start")
+                    {
+                        canRun = true;
+                    }
+                    else if (command.AsString == "stop")
+                    {
+                        canRun = false;
+                    }
                 }
-                else if (true) // can run
+                else if (canRun) // can run
                 {
                     CloudQueueMessage url = urlQueue.GetMessage();
                     if (url != null)
@@ -82,6 +93,7 @@ namespace Crawler
 
             lastTen = new Queue<string>();
             count = 0; // TODO get info from datatable
+            queueSize = 0;
 
             addUrl("www", "/index.html");
 
@@ -91,7 +103,12 @@ namespace Crawler
         private void handleUrl(string url) {
             Debug.WriteLine("Handling: " + url);
             string page = requestPage(url);
-            if (url.EndsWith(".xml")) {
+            if (page == null)
+            {
+                // log error?
+            } 
+            else if (url.EndsWith(".xml"))
+            {
                 parseSitemap(page);
             }
             else
@@ -106,7 +123,6 @@ namespace Crawler
             // check the sitemap for <loc></loc> urls, add them
             foreach (Match url in Regex.Matches(sitemap, "<loc>http://([a-z]*?)\\.cnn\\.com(.*?)</loc>"))
             {
-                Debug.WriteLine("Parsing Sitemap: " + url.Groups[2].Value);
 
                 Match match = Regex.Match(url.Groups[2].Value, "(\\d{4})-\\d{2}\\.xml");
                 if (!match.Success || match.Groups[1].Value == "2014")
@@ -124,9 +140,13 @@ namespace Crawler
 
             foreach (string keyword in Regex.Split(Regex.Replace(site.Trim(), "[^a-zA-Z0-9\\s\\.]+", " ").ToLower(), "\\s"))
             {
-                table.Execute(
-                    TableOperation.InsertOrReplace(new Website(keyword, currentUrl))
-                );
+                try
+                {
+                    table.Execute(
+                        TableOperation.InsertOrReplace(new Website(keyword, currentUrl))
+                    );
+                }
+                catch (Exception e) { }
             }
 
             lastTen.Enqueue(currentUrl);
@@ -135,19 +155,25 @@ namespace Crawler
                 lastTen.Dequeue();
             }
             count++;
-            dataTable.Execute(
-                TableOperation.InsertOrReplace(new Data("count", count.ToString()))
-            );
-            dataTable.Execute(
-                TableOperation.InsertOrReplace(new Data("lastten", String.Join("|", lastTen.ToArray())))
-            );
+            if (count % 10 == 0)
+            {
+                try
+                {
+                    dataTable.Execute(
+                        TableOperation.InsertOrReplace(new Data("count", count.ToString()))
+                    );
+                    dataTable.Execute(
+                        TableOperation.InsertOrReplace(new Data("lastten", String.Join("|", lastTen.ToArray())))
+                    );
+                }
+                catch (Exception e) { }
+            }
 
             Debug.WriteLine("Title: " + site);
 
             // now that we've parsed the page of information we want, check it for links to follow
             foreach (Match url in Regex.Matches(page, "href=\"(?:http://([a-z]*?)\\.cnn\\.com)?([^\"]*?\\.html.*?)[\"#]"))
             {
-                Debug.WriteLine("Parsing Webpage: " + url.Groups[2].Value);
                 string domain = url.Groups[1].Value;
                 if (domain.Length == 0)
                 {
@@ -159,15 +185,21 @@ namespace Crawler
 
         private string requestPage(string url)
         {
-            Debug.WriteLine("Requesting page: " + url);
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "GET";
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
-            string result = sr.ReadToEnd();
-            sr.Close();
-            response.Close();
-            return result;
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                WebResponse response = request.GetResponse();
+                StreamReader sr = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
+                string result = sr.ReadToEnd();
+                sr.Close();
+                response.Close();
+                return result;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
 
         private void addUrl(string domain, string path)
@@ -176,11 +208,9 @@ namespace Crawler
             // parse it's robots.txt and add sitemaps to the queue
             if (!domainValidators.ContainsKey(domain))
             {
-                Debug.WriteLine("Adding DomainValidator: " + domain);
                 domainValidators.Add(domain, new DomainValidator(domain));
                 foreach (string sitemap in domainValidators[domain].getSitemaps())
                 {
-                    Debug.WriteLine("Queueing Sitemap: " + sitemap);
                     urlQueue.AddMessage(new CloudQueueMessage(sitemap));
                 }
             }
@@ -189,7 +219,23 @@ namespace Crawler
             // if it is, enqueue the url
             if (domainValidators[domain].isValid(path))
             {
+                Debug.WriteLine("Added Url: " + path);
                 urlQueue.AddMessage(new CloudQueueMessage("http://" + domain + ".cnn.com" + path));
+                queueSize++;
+                if (queueSize % 10 == 0)
+                {
+                    try
+                    {
+                        dataTable.Execute(
+                            TableOperation.InsertOrReplace(new Data("queuesize", queueSize.ToString()))
+                        );
+                    }
+                    catch (Exception e) { }
+                }
+            }
+            else
+            {
+                Debug.WriteLine("Duplicate: " + path);
             }
         }
     }

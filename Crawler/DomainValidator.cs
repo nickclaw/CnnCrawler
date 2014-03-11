@@ -15,22 +15,27 @@ namespace Crawler
         private string domain;
         private List<string> forbidden;
         private List<string> sitemaps;
+        private HashSet<string> visited;
 
         public DomainValidator(string dmn) {
             domain = dmn;
             forbidden = new List<string>();
             sitemaps = new List<string>();
+            visited = new HashSet<string>();
 
             string robots = requestPage("http://" + domain + ".cnn.com/robots.txt");
-            foreach (Match url in Regex.Matches(robots, "Sitemap: (.*)"))
+            if (robots != null)
             {
-                Debug.WriteLine("Domain - " + domain + ": " + url.Groups[1].Value);
-                sitemaps.Add(url.Groups[1].Value);
-            }
+                foreach (Match url in Regex.Matches(robots, "Sitemap: (.*)"))
+                {
+                    Debug.WriteLine("Domain - " + domain + ": " + url.Groups[1].Value);
+                    sitemaps.Add(url.Groups[1].Value);
+                }
 
-            foreach (Match url in Regex.Matches(robots, "Disallow: (.*)"))
-            {
-                forbidden.Add(url.Groups[1].Value);
+                foreach (Match url in Regex.Matches(robots, "Disallow: (.*)"))
+                {
+                    forbidden.Add(url.Groups[1].Value);
+                }
             }
         }
 
@@ -39,14 +44,9 @@ namespace Crawler
             return sitemaps;
         }
 
-        public List<string> getForbidden()
-        {
-            return forbidden;
-        }
-
         public bool isValid(string path)
         {
-            if (!path.Contains(".html") && !path.Contains(".xml"))
+            if ((!path.Contains(".html") && !path.Contains(".xml")) || visited.Contains(path))
             {
                 return false;
             }
@@ -59,20 +59,29 @@ namespace Crawler
                 }
             }
 
+            visited.Add(path);
+
             return true;
         }
 
         private string requestPage(string url)
         {
             Debug.WriteLine("Requesting page: " + url);
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "GET";
-            WebResponse response = request.GetResponse();
-            StreamReader sr = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
-            string result = sr.ReadToEnd();
-            sr.Close();
-            response.Close();
-            return result;
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                WebResponse response = request.GetResponse();
+                StreamReader sr = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
+                string result = sr.ReadToEnd();
+                sr.Close();
+                response.Close();
+                return result;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
     }
 }

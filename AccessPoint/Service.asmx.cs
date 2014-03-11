@@ -87,12 +87,15 @@ namespace AccessPoint
         [WebMethod]
         public int QueueSize()
         {
-            int? count = urlQueue.ApproximateMessageCount;
-            if (count == null)
+            string result = getData("queuesize");
+            if (result != null)
+            {
+                return int.Parse(result);
+            }
+            else
             {
                 return 0;
             }
-            return (int)count;
         }
         
         [WebMethod]
