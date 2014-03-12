@@ -61,3 +61,21 @@
 #container #playerContainer {
     width: 30%;
 }
+
+#resultsContainer.loading #results, #resultsContainer.loading #no-results {
+    display: none !important;
+}
+
+#resultsContainer.loading #loader {
+   display: block;
+}
+
+#loader {
+    display: none;
+    width: 128px;
+    height: 128px;
+    background: url(loader.GIF);
+    background-size: contain;
+    text-align: center;
+    margin: 100px auto;
+}

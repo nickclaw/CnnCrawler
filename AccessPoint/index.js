@@ -1,16 +1,38 @@
 $(function() {
-
     // searches for the given term and fills the results
     var search = function(term, callback) {
         $.ajax({
-            url: '/path/to/service.xml',
+            url: '/Service.asmx/SearchUrl',
             type: 'POST',
             dataType: 'xml',
+            data: {'word': term},
             success: function(data, status, xhr) {
-                // fill results
+                var urls = data.getElementsByTagName('string');
+                console.log(urls);
+                if (urls.length === 0) {
+                    $("#no-results").show().find("#searchTerm").text(term);
+                    $("#results").hide();
+                } else {
+                    $("#results")
+                        .empty()
+                        .append($.map(urls, function(value, index) {
+                            return $("<div>", {
+                                class: 'result',
+                                append: $("<a>", {
+                                    href: value.textContent,
+                                    text: value.textContent
+                                })
+                            });
+                        }))
+                        .show();
+                    $("#no-results").hide();
+                }
+
                 callback(null, data);
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
+                $("#no-results").show().find("#searchTerm").text(term);
+                $("#results").hide();
                 // show error message, empty results
                 callback(error, null);
             }
@@ -45,7 +67,7 @@ $(function() {
     $("#search").on('keyup', function(evt) {
         // show loading bar
 
-        $('#results').addClass('loading');
+        $('#resultsContainer').addClass('loading');
 
         // get autocomplete
         _t2 && clearTimeout(_t2);
@@ -66,10 +88,10 @@ $(function() {
 
             // search
             search(evt.target.value, function() {
-                $('#results').removeClass('loading');
+                $('#resultsContainer').removeClass('loading');
             });
 
-        }, 1000);
+        }, 200);
 
         // if enter is pressed, immediately search and clear timeout
     }).on('keydown', function(evt) {
