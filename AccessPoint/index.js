@@ -9,15 +9,21 @@ $(function() {
             term = term.trim();
         }
 
-        $.getJSON("ec2-54-186-115-202.us-west-2.compute.amazonaws.com?callback=test&name=" + term, function (data) {
-            if (data.stats) {
-                $("#playerContainer")
-                    .empty()
-                    .append(Object.keys(data.stats).map(function(key) {
-                        return $("<div><span class='stat'>"+key+"</span>" + data.stats[key]);
-                    });
-            } else {
-                $("#playerContainer").empty();
+        $.ajax({
+            url: "http://ec2-54-186-115-202.us-west-2.compute.amazonaws.com/service.php",
+            method: "GET",
+            dataType: 'jsonp',
+            data: { name: term },
+            success: function (data) {
+                if (data.stats) {
+                    $("#player")
+                        .empty()
+                        .append(Object.keys(data.stats).map(function (key) {
+                            return $("<div><span class='stat'>" + key + "</span>" + data.stats[key] + "</div>");
+                        }));
+                } else {
+                    $("#player").empty();
+                }
             }
         });
 
@@ -28,7 +34,6 @@ $(function() {
             data: {'word': term},
             success: function(data, status, xhr) {
                 var urls = data.getElementsByTagName('string');
-                console.log(urls);
                 if (urls.length === 0) {
                     $("#no-results").show().find("#searchTerm").text(term);
                     $("#results").hide();

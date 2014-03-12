@@ -60,6 +60,22 @@
 
 #container #playerContainer {
     width: 30%;
+    font-size: 14pt;
+    text-align: center;
+}
+
+#player {
+    font-size: 14pt;
+    text-align: right;
+}
+
+#player .stat {
+    float: left;
+    font-weight: bolder;
+}
+
+#player div {
+    margin-top: 5px;
 }
 
 #resultsContainer.loading #results, #resultsContainer.loading #no-results {

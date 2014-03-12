@@ -149,7 +149,7 @@ namespace AccessPoint
 
             if (result != null)
             {
-                return result.Split('|').ToList<string>();
+                return WebUtility.UrlDecode(result).Split('|').ToList<string>();
             }
             else
             {
