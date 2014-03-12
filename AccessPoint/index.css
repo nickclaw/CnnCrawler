@@ -95,3 +95,9 @@
     text-align: center;
     margin: 100px auto;
 }
+
+#advertisement {
+    position: absolute;
+    right: -150px;
+    top: 0px;
+}
