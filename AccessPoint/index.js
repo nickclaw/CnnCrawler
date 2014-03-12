@@ -9,6 +9,18 @@ $(function() {
             term = term.trim();
         }
 
+        $.getJSON("ec2-54-186-115-202.us-west-2.compute.amazonaws.com?callback=test&name=" + term, function (data) {
+            if (data.stats) {
+                $("#playerContainer")
+                    .empty()
+                    .append(Object.keys(data.stats).map(function(key) {
+                        return $("<div><span class='stat'>"+key+"</span>" + data.stats[key]);
+                    });
+            } else {
+                $("#playerContainer").empty();
+            }
+        });
+
         $.ajax({
             url: '/Service.asmx/SearchUrl',
             type: 'POST',

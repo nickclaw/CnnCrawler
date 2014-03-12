@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Configuration;
 
 namespace Crawler
 {
@@ -71,7 +72,8 @@ namespace Crawler
             // Set the maximum number of concurrent connections 
             ServicePointManager.DefaultConnectionLimit = 12;
 
-            string connectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
+            
+            string connectionString = ConfigurationManager.ConnectionStrings["StorageServiceString"].ConnectionString;
             CloudStorageAccount storage = CloudStorageAccount.Parse(connectionString);
             CloudQueueClient queueClient = storage.CreateCloudQueueClient();
             commandQueue = queueClient.GetQueueReference("commandqueue");
@@ -81,6 +83,8 @@ namespace Crawler
 
             // urlQueue.Clear(); // TODO temporary
 
+            connectionString = connectionString = ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString;
+            storage = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storage.CreateCloudTableClient();
             helper = new TableHelper(tableClient);
 

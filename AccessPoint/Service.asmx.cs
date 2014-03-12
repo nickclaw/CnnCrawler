@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage.Table.DataServices;
 using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Configuration;
 
 namespace AccessPoint
 {
@@ -29,7 +30,7 @@ namespace AccessPoint
 
         public Service()
         {
-            string connectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
+            string connectionString = ConfigurationManager.ConnectionStrings["StorageServiceString"].ConnectionString;
             CloudStorageAccount storage = CloudStorageAccount.Parse(connectionString);
             CloudQueueClient queueClient = storage.CreateCloudQueueClient();
             commandQueue = queueClient.GetQueueReference("commandqueue");
@@ -37,6 +38,8 @@ namespace AccessPoint
             urlQueue = queueClient.GetQueueReference("urlqueue");
             urlQueue.CreateIfNotExists();
 
+            connectionString = ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString;
+            storage = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storage.CreateCloudTableClient();
             table = tableClient.GetTableReference("urltable");
             table.CreateIfNotExists();

@@ -4,14 +4,12 @@
     <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=nickclawinfo344;AccountKey=KHLG4BeawRTZDseZxzVhwh3k9gzrE9SJRqpkLYRMSP6IoBuZ0wxM60Bj5zxB6eMtRS4SXTlKZJ9DZIASKrswGw==" />
-      <Setting name="Microsoft.ServiceBus.ConnectionString" value="Endpoint=sb://nickclawinfo344.servicebus.windows.net/;SharedSecretIssuer=owner;SharedSecretValue=G01M6/m45P0OF0sPQun2neyx+Cl7zRkNfKSrWRruf0Q=" />
     </ConfigurationSettings>
   </Role>
   <Role name="AccessPoint">
     <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=nickclawinfo344;AccountKey=KHLG4BeawRTZDseZxzVhwh3k9gzrE9SJRqpkLYRMSP6IoBuZ0wxM60Bj5zxB6eMtRS4SXTlKZJ9DZIASKrswGw==" />
-      <Setting name="Microsoft.ServiceBus.ConnectionString" value="Endpoint=sb://nickclawinfo344.servicebus.windows.net/;SharedSecretIssuer=owner;SharedSecretValue=G01M6/m45P0OF0sPQun2neyx+Cl7zRkNfKSrWRruf0Q=" />
     </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>

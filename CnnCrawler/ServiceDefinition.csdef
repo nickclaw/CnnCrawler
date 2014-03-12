@@ -4,9 +4,6 @@
     <Imports>
       <Import moduleName="Diagnostics" />
     </Imports>
-    <ConfigurationSettings>
-      <Setting name="Microsoft.ServiceBus.ConnectionString" />
-    </ConfigurationSettings>
   </WorkerRole>
   <WebRole name="AccessPoint" vmsize="Small">
     <Sites>
@@ -22,8 +19,5 @@
     <Imports>
       <Import moduleName="Diagnostics" />
     </Imports>
-    <ConfigurationSettings>
-      <Setting name="Microsoft.ServiceBus.ConnectionString" />
-    </ConfigurationSettings>
   </WebRole>
 </ServiceDefinition>
