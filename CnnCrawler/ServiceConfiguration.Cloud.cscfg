@@ -4,14 +4,14 @@
     <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
-      <Setting name="Microsoft.ServiceBus.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Microsoft.ServiceBus.ConnectionString" value="Endpoint=sb://nickclawinfo344.servicebus.windows.net/;SharedSecretIssuer=owner;SharedSecretValue=G01M6/m45P0OF0sPQun2neyx+Cl7zRkNfKSrWRruf0Q=" />
     </ConfigurationSettings>
   </Role>
   <Role name="AccessPoint">
     <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
-      <Setting name="Microsoft.ServiceBus.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Microsoft.ServiceBus.ConnectionString" value="Endpoint=sb://nickclawinfo344.servicebus.windows.net/;SharedSecretIssuer=owner;SharedSecretValue=G01M6/m45P0OF0sPQun2neyx+Cl7zRkNfKSrWRruf0Q=" />
     </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>

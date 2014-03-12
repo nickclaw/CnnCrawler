@@ -148,6 +148,7 @@ namespace Crawler
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Timeout = 20000;
                 request.Method = "GET";
                 WebResponse response = request.GetResponse();
                 StreamReader sr = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
