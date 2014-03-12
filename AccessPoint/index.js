@@ -1,6 +1,14 @@
 $(function() {
     // searches for the given term and fills the results
-    var search = function(term, callback) {
+    var search = function (term, callback) {
+        if (term.trim() === "") {
+            $("#results").empty().append("<div class='result'><h2>Search anything.</h2></div>").show();
+            callback(null, []);
+            return;
+        } else {
+            term = term.trim();
+        }
+
         $.ajax({
             url: '/Service.asmx/SearchUrl',
             type: 'POST',
@@ -109,7 +117,8 @@ $(function() {
     $("#autocomplete").on('click', 'li', function(evt) {
         var e = $.Event('keydown');
         e.which = 13;
-        $("#search").val(evt.target.innerHTMl).trigger(e);
+        $("#search")[0].value = evt.target.innerHTML;
+        $("#search").trigger(e);
     });
 
     $(document.body).on('click', function() {
