@@ -17,14 +17,10 @@ namespace Crawler
 {
     public class WorkerRole : RoleEntryPoint
     {
+        public TableHelper helper;
+
         public CloudQueue commandQueue;
         public CloudQueue urlQueue;
-        public CloudTable table;
-        public CloudTable dataTable;
-
-        public int count;
-        public int queueSize;
-        public Queue<string> lastTen;
 
         public Dictionary<string, DomainValidator> domainValidators = new Dictionary<string, DomainValidator>();
 
@@ -32,7 +28,7 @@ namespace Crawler
         {
             Debug.WriteLine("Run()");
 
-            bool canRun = false;
+            bool canRun = !helper.isRunning("false");
 
             // This is a sample worker implementation. Replace with your logic.
             Trace.TraceInformation("Crawler entry point called", "Information");
@@ -49,11 +45,11 @@ namespace Crawler
                     Debug.WriteLine("############## COMMAND: " + command.AsString + " ############");
                     if (command.AsString == "start")
                     {
-                        canRun = true;
+                        canRun = helper.isRunning("true");
                     }
                     else if (command.AsString == "stop")
                     {
-                        canRun = false;
+                        canRun = !helper.isRunning("false");
                     }
                 }
                 else if (canRun) // can run
@@ -86,14 +82,7 @@ namespace Crawler
             // urlQueue.Clear(); // TODO temporary
 
             CloudTableClient tableClient = storage.CreateCloudTableClient();
-            table = tableClient.GetTableReference("urltable");
-            table.CreateIfNotExists();
-            dataTable = tableClient.GetTableReference("datatable");
-            dataTable.CreateIfNotExists();
-
-            lastTen = new Queue<string>();
-            count = 0; // TODO get info from datatable
-            queueSize = 0;
+            helper = new TableHelper(tableClient);
 
             addUrl("www", "/index.html");
 
@@ -105,7 +94,7 @@ namespace Crawler
             string page = requestPage(url);
             if (page == null)
             {
-                // log error?
+                // errors already been logged
             } 
             else if (url.EndsWith(".xml"))
             {
@@ -138,36 +127,7 @@ namespace Crawler
             Match siteMatch = Regex.Match(page, "<title>(.*?)(?:[-<].*)itle>");
             string site = siteMatch.Groups[1].Value;
 
-            foreach (string keyword in Regex.Split(Regex.Replace(site.Trim(), "[^a-zA-Z0-9\\s\\.]+", " ").ToLower(), "\\s"))
-            {
-                try
-                {
-                    table.Execute(
-                        TableOperation.InsertOrReplace(new Website(keyword, currentUrl))
-                    );
-                }
-                catch (Exception e) { }
-            }
-
-            lastTen.Enqueue(currentUrl);
-            if (lastTen.Count > 10)
-            {
-                lastTen.Dequeue();
-            }
-            count++;
-            if (count % 10 == 0)
-            {
-                try
-                {
-                    dataTable.Execute(
-                        TableOperation.InsertOrReplace(new Data("count", count.ToString()))
-                    );
-                    dataTable.Execute(
-                        TableOperation.InsertOrReplace(new Data("lastten", String.Join("|", lastTen.ToArray())))
-                    );
-                }
-                catch (Exception e) { }
-            }
+            helper.storeUrl(Regex.Split(Regex.Replace(site.Trim(), "[^a-zA-Z0-9\\s\\.]+", " ").ToLower(), "\\s"), currentUrl);
 
             Debug.WriteLine("Title: " + site);
 
@@ -198,6 +158,7 @@ namespace Crawler
             }
             catch (Exception e)
             {
+                helper.registerError(e.Message);
                 return null;
             }
         }
@@ -221,21 +182,7 @@ namespace Crawler
             {
                 Debug.WriteLine("Added Url: " + path);
                 urlQueue.AddMessage(new CloudQueueMessage("http://" + domain + ".cnn.com" + path));
-                queueSize++;
-                if (queueSize % 10 == 0)
-                {
-                    try
-                    {
-                        dataTable.Execute(
-                            TableOperation.InsertOrReplace(new Data("queuesize", queueSize.ToString()))
-                        );
-                    }
-                    catch (Exception e) { }
-                }
-            }
-            else
-            {
-                Debug.WriteLine("Duplicate: " + path);
+                helper.incrementQueueSize();
             }
         }
     }

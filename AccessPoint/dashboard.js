@@ -19,19 +19,17 @@ $(function () {
         sendRequest("Command", {'command': command });
     }
 
-    var command = "start";
-    $("#toggle").click(function () {
-        sendCommand(command);
-        command = command === "start" ? "stop" : "start";
-    });
-
-    window.setInterval(function (data) {
+    function update() {
         sendRequest("QueueSize", null, function (data) {
             $("#queueSize .value").text(data.getElementsByTagName('int')[0].textContent);
         });
 
         sendRequest("CrawledSize", null, function (data) {
             $("#crawledSize .value").text(data.getElementsByTagName('int')[0].textContent);
+        });
+
+        sendRequest("ErrorSize", null, function (data) {
+            $("#errorCount .value").text(data.getElementsByTagName('int')[0].textContent);
         });
 
         sendRequest("LastTen", null, function (data) {
@@ -43,6 +41,35 @@ $(function () {
                     })
                 }));
         });
-        //
+
+        sendRequest("LastTenErrors", null, function (data) {
+            $("#lasterrors ul")
+                .empty()
+                .append($.map(data.getElementsByTagName('string'), function (value, index) {
+                    return $('<li>', {
+                        text: value.textContent
+                    })
+                }));
+        });
+
+        sendRequest("GetRam", null, function (data) {
+            $("#ram .value").text(data.getElementsByTagName("long")[0].textContent + 'mb');
+        });
+
+        sendRequest("IsRunning", null, function (data) {
+            $("#running .value").text(data.getElementsByTagName("string")[0].textContent);
+        });
+    }
+
+    var command = "start";
+    $("#toggle").click(function () {
+        sendCommand(command);
+        command = command === "start" ? "stop" : "start";
+        $(this).text(command);
+    });
+
+    update();
+    window.setInterval(function () {
+        update();
     }, 5000);
 });

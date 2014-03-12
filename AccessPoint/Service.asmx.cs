@@ -113,6 +113,20 @@ namespace AccessPoint
         }
 
         [WebMethod]
+        public int ErrorSize()
+        {
+            string result = getData("errorsize");
+            if (result != null)
+            {
+                return int.Parse(result);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        [WebMethod]
         public List<string> LastTen()
         {
             string result = getData("lastten");
@@ -124,6 +138,42 @@ namespace AccessPoint
             else
             {
                 return new List<string>();
+            }
+        }
+
+        [WebMethod]
+        public List<string> LastTenErrors()
+        {
+            string result = getData("lasttenerror");
+
+            if (result != null)
+            {
+                return result.Split('|').ToList<string>();
+            }
+            else
+            {
+                return new List<string>();
+            }
+        }
+
+
+        [WebMethod]
+        public long GetRam()
+        {
+            return GC.GetTotalMemory(true) / 1048576;
+        }
+
+        [WebMethod]
+        public string IsRunning()
+        {
+            string result = getData("isrunning");
+            if (result != null)
+            {
+                return result;
+            }
+            else
+            {
+                return "false";
             }
         }
 
