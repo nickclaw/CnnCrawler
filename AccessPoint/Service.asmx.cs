@@ -23,26 +23,34 @@ namespace AccessPoint
     // [System.Web.Script.Services.ScriptService]
     public class Service : System.Web.Services.WebService
     {
-        private CloudTable table;
-        private CloudTable dataTable;
-        private CloudQueue commandQueue;
-        private CloudQueue urlQueue;
+        private static CloudTable table;
+        private static CloudTable dataTable;
+        private static CloudQueue commandQueue;
+        private static CloudQueue urlQueue;
+        private static bool created = false;
+        private static Dictionary<string, List<string>> cache;
 
         public Service()
         {
-            string connectionString = connectionString = ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString;
-            CloudStorageAccount storage = CloudStorageAccount.Parse(connectionString);
-            CloudQueueClient queueClient = storage.CreateCloudQueueClient();
-            commandQueue = queueClient.GetQueueReference("commandqueue");
-            commandQueue.CreateIfNotExists();
-            urlQueue = queueClient.GetQueueReference("urlqueue");
-            urlQueue.CreateIfNotExists();
+            if (created == false)
+            {
+                string connectionString = connectionString = ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString;
+                CloudStorageAccount storage = CloudStorageAccount.Parse(connectionString);
+                CloudQueueClient queueClient = storage.CreateCloudQueueClient();
+                commandQueue = queueClient.GetQueueReference("commandqueue");
+                commandQueue.CreateIfNotExists();
+                urlQueue = queueClient.GetQueueReference("urlqueue");
+                urlQueue.CreateIfNotExists();
 
-            CloudTableClient tableClient = storage.CreateCloudTableClient();
-            table = tableClient.GetTableReference("urltable");
-            table.CreateIfNotExists();
-            dataTable = tableClient.GetTableReference("datatable");
-            dataTable.CreateIfNotExists();
+                CloudTableClient tableClient = storage.CreateCloudTableClient();
+                table = tableClient.GetTableReference("urltable");
+                table.CreateIfNotExists();
+                dataTable = tableClient.GetTableReference("datatable");
+                dataTable.CreateIfNotExists();
+
+                cache = new Dictionary<string, List<string>>();
+                created = true;
+            }
         }
 
         private string combineFilter(List<string> words) {
@@ -69,12 +77,27 @@ namespace AccessPoint
         [WebMethod]
         public List<string> SearchUrl(string word)
         {
-            TableQuery<Website> query = new TableQuery<Website>().Where(combineFilter(Regex.Split(word, "\\s").ToList()));
-
-            List<string> list = new List<string>();
-            foreach(Website site in table.ExecuteQuery(query)) {
-                list.Add(WebUtility.UrlDecode(site.RowKey));
+            List<string> list;
+            if (cache.ContainsKey(word))
+            {
+                return cache[word];
             }
+            else
+            {
+                TableQuery<Website> query = new TableQuery<Website>().Where(combineFilter(Regex.Split(word, "\\s").ToList()));
+                list = new List<string>();
+                foreach (Website site in table.ExecuteQuery(query))
+                {
+                    list.Add(WebUtility.UrlDecode(site.RowKey));
+                }
+
+                cache.Add(word, list);
+                if (cache.Count > 100)
+                {
+                    cache.Clear();
+                }
+            }
+
             return list;
         }
 
@@ -83,6 +106,12 @@ namespace AccessPoint
         {
             commandQueue.AddMessage(new CloudQueueMessage(command));
             return true;
+        }
+
+        [WebMethod]
+        public int SearchCacheSize()
+        {
+            return cache.Count;
         }
 
         [WebMethod]

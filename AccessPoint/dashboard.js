@@ -32,6 +32,10 @@ $(function () {
             $("#errorCount .value").text(data.getElementsByTagName('int')[0].textContent);
         });
 
+        sendRequest("SearchCacheSize", null, function (data) {
+            $("#storage .one").text(data.getElementsByTagName('int')[0].textContent);
+        });
+
         sendRequest("LastTen", null, function (data) {
             $("#lastten ul")
                 .empty()
