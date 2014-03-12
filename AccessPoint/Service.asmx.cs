@@ -30,7 +30,7 @@ namespace AccessPoint
 
         public Service()
         {
-            string connectionString = ConfigurationManager.ConnectionStrings["StorageServiceString"].ConnectionString;
+            string connectionString = connectionString = ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString;
             CloudStorageAccount storage = CloudStorageAccount.Parse(connectionString);
             CloudQueueClient queueClient = storage.CreateCloudQueueClient();
             commandQueue = queueClient.GetQueueReference("commandqueue");
@@ -38,8 +38,6 @@ namespace AccessPoint
             urlQueue = queueClient.GetQueueReference("urlqueue");
             urlQueue.CreateIfNotExists();
 
-            connectionString = ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString;
-            storage = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storage.CreateCloudTableClient();
             table = tableClient.GetTableReference("urltable");
             table.CreateIfNotExists();

@@ -72,8 +72,8 @@ namespace Crawler
             // Set the maximum number of concurrent connections 
             ServicePointManager.DefaultConnectionLimit = 12;
 
-            
-            string connectionString = ConfigurationManager.ConnectionStrings["StorageServiceString"].ConnectionString;
+
+            string connectionString = connectionString = ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString;
             CloudStorageAccount storage = CloudStorageAccount.Parse(connectionString);
             CloudQueueClient queueClient = storage.CreateCloudQueueClient();
             commandQueue = queueClient.GetQueueReference("commandqueue");
@@ -83,8 +83,6 @@ namespace Crawler
 
             // urlQueue.Clear(); // TODO temporary
 
-            connectionString = connectionString = ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString;
-            storage = CloudStorageAccount.Parse(connectionString);
             CloudTableClient tableClient = storage.CreateCloudTableClient();
             helper = new TableHelper(tableClient);
 
