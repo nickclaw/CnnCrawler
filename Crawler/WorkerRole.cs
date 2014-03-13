@@ -37,9 +37,9 @@ namespace Crawler
             {
                 Thread.Sleep(600);
                 n++;
-                if (n % 15 == 0)
+                if (n % 20 == 0)
                 {
-                    requestPage("http://nickclawinfo344.cloudapp.net/Service.asmx/AutoComplete?word=test");
+                   requestPage("http://nickclawinfo344.cloudapp.net/Service.asmx/AutoComplete?word=test");
                 }
 
                 CloudQueueMessage command = commandQueue.GetMessage();
@@ -157,7 +157,7 @@ namespace Crawler
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.Timeout = 20000;
+                request.Timeout = 30000;
                 request.Method = "GET";
                 WebResponse response = request.GetResponse();
                 StreamReader sr = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
