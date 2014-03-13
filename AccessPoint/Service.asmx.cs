@@ -65,7 +65,11 @@ namespace AccessPoint
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    root.build(line.ToLower());
+                    try
+                    {
+                        root.build(line.ToLower());
+                    }
+                    catch (Exception e) { }
                 }
 
                 created = true;
@@ -272,13 +276,7 @@ namespace AccessPoint
 
             Debug.WriteLine("############### REGISTER ##################");
             foreach(Website site in table.ExecuteQuery(query)) {
-                Debug.WriteLine("TESTING");
-                Debug.WriteLine(site.count);
-                if (site.count == null) {
-                    site.count = 1;
-                } else {
-                    site.count = site.count + 1;
-                }
+                site.count = site.count + 1;
                 try {
                     table.Execute(
                         TableOperation.InsertOrMerge(site) 

@@ -27,17 +27,20 @@ namespace Crawler
 
         public override void Run()
         {
-            Debug.WriteLine("Run()");
-
             bool canRun = !helper.isRunning("false");
+            int n = 0;
 
             // This is a sample worker implementation. Replace with your logic.
             Trace.TraceInformation("Crawler entry point called", "Information");
 
             while (true)
             {
-                Debug.WriteLine("``---------------------RUNNING------------------");
-                Thread.Sleep(500);
+                Thread.Sleep(600);
+                n++;
+                if (n % 15 == 0)
+                {
+                    requestPage("http://nickclawinfo344.cloudapp.net/Service.asmx/AutoComplete?word=test");
+                }
 
                 CloudQueueMessage command = commandQueue.GetMessage();
                 if (command != null)
@@ -75,7 +78,6 @@ namespace Crawler
 
         public override bool OnStart()
         {
-            Debug.WriteLine("OnStart()");
 
             // Set the maximum number of concurrent connections 
             ServicePointManager.DefaultConnectionLimit = 12;
@@ -100,7 +102,6 @@ namespace Crawler
         }
 
         private void handleUrl(string url) {
-            Debug.WriteLine("Handling: " + url);
             string page = requestPage(url);
             if (page == null)
             {
@@ -139,8 +140,6 @@ namespace Crawler
 
             helper.storeUrl(Regex.Split(Regex.Replace(site.Trim(), "[^a-zA-Z0-9\\s\\.]+", " ").ToLower(), "\\s"), currentUrl);
 
-            Debug.WriteLine("Title: " + site);
-
             // now that we've parsed the page of information we want, check it for links to follow
             foreach (Match url in Regex.Matches(page, "href=\"(?:http://([a-z]*?)\\.cnn\\.com)?([^\"]*?\\.html.*?)[\"#]"))
             {
@@ -167,7 +166,7 @@ namespace Crawler
                 response.Close();
                 return result;
             }
-            catch (Exception e)
+            catch (Exception e) 
             {
                 helper.registerError(e.Message);
                 return null;
@@ -191,7 +190,6 @@ namespace Crawler
             // if it is, enqueue the url
             if (domainValidators[domain].isValid(path))
             {
-                Debug.WriteLine("Added Url: " + path);
                 urlQueue.AddMessage(new CloudQueueMessage("http://" + domain + ".cnn.com" + path));
                 helper.incrementQueueSize();
             }
