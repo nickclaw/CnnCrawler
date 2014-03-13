@@ -13,6 +13,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Configuration;
+using System.IO;
+using System.Web.Hosting;
 
 namespace AccessPoint
 {
@@ -27,8 +29,14 @@ namespace AccessPoint
         private static CloudTable dataTable;
         private static CloudQueue commandQueue;
         private static CloudQueue urlQueue;
+
+        private static TrieNode root;
+
+        private static Dictionary<string, List<string>> autoCache;        
+        private static Dictionary<string, List<string>> searchCache;
         private static bool created = false;
-        private static Dictionary<string, List<string>> cache;
+
+        
 
         public Service()
         {
@@ -48,8 +56,38 @@ namespace AccessPoint
                 dataTable = tableClient.GetTableReference("datatable");
                 dataTable.CreateIfNotExists();
 
-                cache = new Dictionary<string, List<string>>();
+                searchCache = new Dictionary<string, List<string>>();
+                autoCache = new Dictionary<string, List<string>>();
+
+                root = new TrieNode(null);
+
+                StreamReader reader = new StreamReader(HostingEnvironment.ApplicationPhysicalPath + "million.txt");
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    root.build(line.ToLower());
+                }
+
                 created = true;
+            }
+        }
+
+        [WebMethod]
+        public List<string> AutoComplete(string word)
+        {
+            if (autoCache.ContainsKey(word))
+            {
+                return autoCache[word];
+            }
+            else
+            {
+                List<string> list = root.search(word.ToLower().Replace(' ', '_'), 10);
+                autoCache.Add(word, list);
+                if (autoCache.Count > 100)
+                {
+                    autoCache.Clear();
+                }
+                return list;
             }
         }
 
@@ -78,9 +116,9 @@ namespace AccessPoint
         public List<string> SearchUrl(string word)
         {
             List<string> list;
-            if (cache.ContainsKey(word))
+            if (searchCache.ContainsKey(word))
             {
-                return cache[word];
+                return searchCache[word];
             }
             else
             {
@@ -91,10 +129,10 @@ namespace AccessPoint
                     list.Add(WebUtility.UrlDecode(site.RowKey));
                 }
 
-                cache.Add(word, list);
-                if (cache.Count > 100)
+                searchCache.Add(word, list);
+                if (searchCache.Count > 100)
                 {
-                    cache.Clear();
+                    searchCache.Clear();
                 }
             }
 
@@ -111,7 +149,13 @@ namespace AccessPoint
         [WebMethod]
         public int SearchCacheSize()
         {
-            return cache.Count;
+            return searchCache.Count;
+        }
+
+        [WebMethod]
+        public int AutoCacheSize()
+        {
+            return autoCache.Count;
         }
 
         [WebMethod]

@@ -87,6 +87,7 @@
     <Content Include="index.html" />
     <Content Include="index.js" />
     <Content Include="loader.GIF" />
+    <Content Include="million.txt" />
     <Content Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -106,6 +107,7 @@
       <DependentUpon>Service.asmx</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="TrieNode.cs" />
     <Compile Include="WebRole.cs" />
   </ItemGroup>
   <ItemGroup>

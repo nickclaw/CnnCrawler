@@ -36,6 +36,10 @@ $(function () {
             $("#storage .one").text(data.getElementsByTagName('int')[0].textContent);
         });
 
+        sendRequest("AutoCacheSize", null, function (data) {
+            $("storage .two").text(data.getElementsByTagName('int')[0].textContent);
+        });
+
         sendRequest("LastTen", null, function (data) {
             $("#lastten ul")
                 .empty()

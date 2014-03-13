@@ -65,18 +65,25 @@ $(function() {
     }
 
     // looks up the autocomplete strings and shows them
-    var autocomplete = function(string, callback) {
-        $("#autocomplete")
-            .show()
-            .addClass("loading");
-
+    var autocomplete = function (string, callback) {
+        $("#autocomplete").hide().empty();
         $.ajax({
-            url: '/path/to/service.xml',
+            url: '/Service.asmx/AutoComplete',
             type: 'POST',
             dataType: 'xml',
-            success: function(data, status, xhr) {
-                $("#autoloading").removeClass("loading");
-                // fill results
+            data: {word: string},
+            success: function (data, status, xhr) {
+                if (data.getElementsByTagName('string').length > 0) {
+                    $("#autocomplete")
+                    .append([$('<li>'+string+'</li>')].concat($.map(data.getElementsByTagName('string'), function (value) {
+                        return $('<li>', {
+                            text: value.textContent
+                        });
+                    })))
+                    .show();
+                } else {
+                
+}
                 callback(null, data);
             },
             error: function(xhr, status, error) {
@@ -138,7 +145,7 @@ $(function() {
         $("#search").trigger(e);
     });
 
-    $(document.body).on('click', function() {
+    $(document).on('click', function() {
         $('#autocomplete').hide();
     })
 
