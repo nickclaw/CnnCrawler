@@ -11,6 +11,8 @@ namespace Crawler
 {
     public class Website : TableEntity
     {
+        public int count { get; set; }
+
         public Website()
         {
 

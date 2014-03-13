@@ -53,3 +53,11 @@
 #commands button:hover {
     background-color: rgb(200,200,200);
 }
+
+.one {
+    top: -20px !important;
+}
+
+.two {
+    top: 40px !important;
+}

@@ -78,7 +78,7 @@ namespace Crawler
                 try
                 {
                     urlTable.Execute(
-                        TableOperation.InsertOrReplace(new Website(keyword, path))
+                        TableOperation.InsertOrMerge(new Website(keyword, path))
                     );
                 }
                 catch (Exception e)
@@ -110,6 +110,15 @@ namespace Crawler
                     registerError(e.Message);
                 }
             }
+        }
+
+        public void Clear()
+        {
+            errorSize = 0;
+            queueSize = 0;
+            crawledSize = 0;
+            lastTenErrors.Clear();
+            lastTenUrls.Clear();
         }
 
         public void registerError(string error)

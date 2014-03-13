@@ -37,7 +37,7 @@ $(function () {
         });
 
         sendRequest("AutoCacheSize", null, function (data) {
-            $("storage .two").text(data.getElementsByTagName('int')[0].textContent);
+            $("#storage .two").text(data.getElementsByTagName('int')[0].textContent);
         });
 
         sendRequest("LastTen", null, function (data) {
@@ -74,6 +74,12 @@ $(function () {
         sendCommand(command);
         command = command === "start" ? "stop" : "start";
         $(this).text(command);
+    });
+
+    $("#clear").click(function () {
+        sendCommand("clear");
+        comand = "start";
+        $("#toggle").text(command);
     });
 
     update();

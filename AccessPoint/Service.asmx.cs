@@ -123,8 +123,15 @@ namespace AccessPoint
             else
             {
                 TableQuery<Website> query = new TableQuery<Website>().Where(combineFilter(Regex.Split(word, "\\s").ToList()));
+                
+                // get and sort
+                List<Website> webList = table.ExecuteQuery(query).ToList<Website>();
+                webList.Sort(delegate(Website a, Website b) {
+                    return b.count - a.count;
+                });
+
                 list = new List<string>();
-                foreach (Website site in table.ExecuteQuery(query))
+                foreach (Website site in webList)
                 {
                     list.Add(WebUtility.UrlDecode(site.RowKey));
                 }
@@ -142,6 +149,11 @@ namespace AccessPoint
         [WebMethod]
         public bool Command(string command)
         {
+            if (command == "clear")
+            {
+                autoCache.Clear();
+                searchCache.Clear();
+            }
             commandQueue.AddMessage(new CloudQueueMessage(command));
             return true;
         }
@@ -249,6 +261,32 @@ namespace AccessPoint
             {
                 return "false";
             }
+        }
+
+        [WebMethod]
+        public bool RegisterClick(string url)
+        {
+            TableQuery<Website> query = new TableQuery<Website>().Where(
+                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, WebUtility.UrlEncode(url))
+            );
+
+            Debug.WriteLine("############### REGISTER ##################");
+            foreach(Website site in table.ExecuteQuery(query)) {
+                Debug.WriteLine("TESTING");
+                Debug.WriteLine(site.count);
+                if (site.count == null) {
+                    site.count = 1;
+                } else {
+                    site.count = site.count + 1;
+                }
+                try {
+                    table.Execute(
+                        TableOperation.InsertOrMerge(site) 
+                    );
+                } catch (Exception e){}
+            }
+
+            return true;
         }
 
         private string getData(string type) {

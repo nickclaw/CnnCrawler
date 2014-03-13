@@ -45,7 +45,8 @@ $(function() {
                                 class: 'result',
                                 append: $("<a>", {
                                     href: value.textContent,
-                                    text: value.textContent
+                                    text: value.textContent,
+                                    target: "_blank"
                                 })
                             });
                         }))
@@ -149,4 +150,14 @@ $(function() {
         $('#autocomplete').hide();
     })
 
+    $('#results').on('click', 'a', function (evt) {
+        console.log("CLICKED");
+        var url = this.getAttribute("href");
+        $.ajax({
+            url: "/Service.asmx/RegisterClick",
+            type: "POST",
+            data: { url: url }
+        });
+
+    });
 });

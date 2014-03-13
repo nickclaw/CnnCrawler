@@ -52,6 +52,14 @@ namespace Crawler
                     {
                         canRun = !helper.isRunning("false");
                     }
+                    else if (command.AsString == "clear")
+                    {
+                        canRun = !helper.isRunning("false");
+                        urlQueue.Clear();
+                        helper.Clear();
+                        domainValidators.Clear();
+                        addUrl("www","/index.html");
+                    }
                 }
                 else if (canRun) // can run
                 {
